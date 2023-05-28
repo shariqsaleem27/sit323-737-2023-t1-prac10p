@@ -1,56 +1,34 @@
-// Importing the necessary modules
-const readline = require('readline');
+const http = require('http');
 
-// Creating a readline interface
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
+const server = http.createServer((req, res) => {
+  const url = new URL(req.url, `http://${req.headers.host}`);
+
+  // Read the shape and parameters from the URL query parameters
+  const shape = url.searchParams.get('shape');
+  const length = parseFloat(url.searchParams.get('length'));
+  const width = parseFloat(url.searchParams.get('width'));
+  const radius = parseFloat(url.searchParams.get('radius'));
+
+  // Calculate and return the perimeter based on the shape
+  let perimeter;
+  if (shape === "rectangle") {
+    perimeter = 2 * (length + width);
+  } else if (shape === "square") {
+    perimeter = 4 * length;
+  } else if (shape === "circle") {
+    perimeter = 2 * Math.PI * radius;
+  } else {
+    res.statusCode = 400;
+    res.end("Invalid shape provided.");
+    return;
+  }
+
+  res.statusCode = 200;
+  res.setHeader('Content-Type', 'text/plain');
+  res.end(`Perimeter of the ${shape}: ${perimeter}`);
 });
 
-// Function to calculate the perimeter of a rectangle
-function calculateRectanglePerimeter() {
-  rl.question('Enter the length of the rectangle: ', (length) => {
-    rl.question('Enter the width of the rectangle: ', (width) => {
-      const perimeter = 2 * (parseFloat(length) + parseFloat(width));
-      console.log(`The perimeter of the rectangle is: ${perimeter}`);
-      rl.close();
-    });
-  });
-}
-
-// Function to calculate the perimeter of a square
-function calculateSquarePerimeter() {
-  rl.question('Enter the side length of the square: ', (side) => {
-    const perimeter = 4 * parseFloat(side);
-    console.log(`The perimeter of the square is: ${perimeter}`);
-    rl.close();
-  });
-}
-
-// Function to calculate the perimeter of a circle
-function calculateCirclePerimeter() {
-  rl.question('Enter the radius of the circle: ', (radius) => {
-    const perimeter = 2 * Math.PI * parseFloat(radius);
-    console.log(`The perimeter of the circle is: ${perimeter}`);
-    rl.close();
-  });
-}
-
-// Main function to prompt the user for the shape and call the corresponding perimeter calculation function
-function calculatePerimeter() {
-  rl.question('Enter the shape (rectangle, square, circle): ', (shape) => {
-    if (shape === 'rectangle') {
-      calculateRectanglePerimeter();
-    } else if (shape === 'square') {
-      calculateSquarePerimeter();
-    } else if (shape === 'circle') {
-      calculateCirclePerimeter();
-    } else {
-      console.log('Invalid shape entered!');
-      rl.close();
-    }
-  });
-}
-
-// Starting the application
-calculatePerimeter();
+const port = 3000;
+server.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
+});
